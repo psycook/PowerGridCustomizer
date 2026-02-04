@@ -106,19 +106,18 @@ export const cellRendererOverrides: CellRendererOverrides = {
 		};
 		if (col.colDefs[col.columnIndex].name === "cra_researchplanrunstatus") {
 			return (
-				<Stack verticalAlign="center" horizontalAlign="start" styles={{ root: { height: "100%", padding: 4 } }}>
+				<Stack verticalAlign="center" horizontalAlign="start" styles={{ root: { height: "100%", paddingLeft: 8 } }}>
 					<Stack
 						horizontal
 						verticalAlign="center"
 						horizontalAlign="center"
-						tokens={{ childrenGap: 6 }}
+						tokens={{ childrenGap: 4 }}
 						styles={{
 							root: {
 								backgroundColor: config.background,
 								border: `1px solid ${config.border}`,
-								padding: "4px 12px",
-								borderRadius: 16,
-								boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
+								padding: "2px 8px",
+								borderRadius: 12,
 							},
 						}}
 					>
@@ -126,9 +125,9 @@ export const cellRendererOverrides: CellRendererOverrides = {
 							iconName={config.icon}
 							styles={{
 								root: {
-									fontSize: 14,
+									fontSize: 12,
 									color: config.text,
-									animation: optionText === "Running" ? "spin 1.5s linear infinite" : undefined,
+									animation: optionText === "Running" ? "spin 2s linear infinite" : undefined,
 								},
 							}}
 						/>
@@ -137,7 +136,7 @@ export const cellRendererOverrides: CellRendererOverrides = {
 								root: {
 									color: config.text,
 									fontWeight: 500,
-									fontSize: 13,
+									fontSize: 12,
 								},
 							}}
 						>
