@@ -18,13 +18,43 @@ const getProgressColor = (percentage: number): string => {
 	return "#107c10"; // Green
 };
 
-const optionSetColorMap: Record<string, string> = {
-	"Queued": "#00ccff",
-	"Running": "#ff9966",
-	"Suceeded": "#99cc99",
-	"Failed": "#ff6666",
-	"Skipped": "#ff6666",
-	"Cancelled": "#ff6666",
+const statusConfig: Record<string, { background: string; border: string; text: string; icon: string }> = {
+	"Queued": {
+		background: "#e6f7ff",
+		border: "#91d5ff",
+		text: "#0958d9",
+		icon: "Clock",
+	},
+	"Running": {
+		background: "#fff7e6",
+		border: "#ffd591",
+		text: "#d46b08",
+		icon: "Sync",
+	},
+	"Suceeded": {
+		background: "#f6ffed",
+		border: "#b7eb8f",
+		text: "#389e0d",
+		icon: "Completed",
+	},
+	"Failed": {
+		background: "#fff2f0",
+		border: "#ffccc7",
+		text: "#cf1322",
+		icon: "ErrorBadge",
+	},
+	"Skipped": {
+		background: "#f5f5f5",
+		border: "#d9d9d9",
+		text: "#595959",
+		icon: "Forward",
+	},
+	"Cancelled": {
+		background: "#f5f5f5",
+		border: "#d9d9d9",
+		text: "#595959",
+		icon: "Blocked",
+	},
 };
 
 export const cellRendererOverrides: CellRendererOverrides = {
@@ -68,23 +98,52 @@ export const cellRendererOverrides: CellRendererOverrides = {
 	},
 	["OptionSet"]: (props, col) => {
 		const optionText = props.formattedValue ?? "";
-		const optionColor = optionSetColorMap[optionText] ?? "#ffffff";
+		const config = statusConfig[optionText] ?? {
+			background: "#f5f5f5",
+			border: "#d9d9d9",
+			text: "#595959",
+			icon: "StatusCircleQuestionMark",
+		};
 		if (col.colDefs[col.columnIndex].name === "cra_researchplanrunstatus") {
 			return (
-				<Stack verticalAlign="center" horizontalAlign="center" styles={{ root: { height: "100%", padding: 4 } }}>
-					<Text
+				<Stack verticalAlign="center" horizontalAlign="start" styles={{ root: { height: "100%", padding: 4 } }}>
+					<Stack
+						horizontal
+						verticalAlign="center"
+						horizontalAlign="center"
+						tokens={{ childrenGap: 6 }}
 						styles={{
 							root: {
-								backgroundColor: optionColor,
-								padding: "2px 8px",
-								textAlign: "center",
-								borderRadius: 8,
-								width: "100%",
+								backgroundColor: config.background,
+								border: `1px solid ${config.border}`,
+								padding: "4px 12px",
+								borderRadius: 16,
+								boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
 							},
 						}}
 					>
-						{optionText}
-					</Text>
+						<Icon
+							iconName={config.icon}
+							styles={{
+								root: {
+									fontSize: 14,
+									color: config.text,
+									animation: optionText === "Running" ? "spin 1.5s linear infinite" : undefined,
+								},
+							}}
+						/>
+						<Text
+							styles={{
+								root: {
+									color: config.text,
+									fontWeight: 500,
+									fontSize: 13,
+								},
+							}}
+						>
+							{optionText}
+						</Text>
+					</Stack>
 				</Stack>
 			);
 		}
