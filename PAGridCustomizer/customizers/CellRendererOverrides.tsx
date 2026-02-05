@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Text, ProgressIndicator, Stack, Icon } from "@fluentui/react";
+import { Text, Stack, Icon } from "@fluentui/react";
 import { CellRendererOverrides } from "../types";
 
 const formatDateTime = (dateValue: Date): string => {
@@ -12,53 +12,108 @@ const formatDateTime = (dateValue: Date): string => {
 	return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 };
 
-const getProgressColor = (percentage: number): string => {
-	if (percentage < 25) return "#d13438"; // Red
-	if (percentage < 75) return "#ffaa44"; // Amber
-	return "#107c10"; // Green
+const getProgressStyle = (percentage: number): { color: string; background: string; trackColor: string; icon: string } => {
+	if (percentage < 25) return { 
+		color: "#dc2626", 
+		background: "#fee2e2", 
+		trackColor: "#fecaca",
+		icon: "CircleRing"
+	};
+	if (percentage < 100) return { 
+		color: "#d97706", 
+		background: "#fef3c7", 
+		trackColor: "#fde68a",
+		icon: "CircleHalfFull"
+	};
+	return { 
+		color: "#16a34a", 
+		background: "#dcfce7", 
+		trackColor: "#bbf7d0",
+		icon: "CompletedSolid"
+	};
 };
 
-const statusConfig: Record<string, { background: string; border: string; text: string; icon: string }> = {
+const statusConfig: Record<string, { background: string; text: string; icon: string }> = {
 	"Queued": {
-		background: "#e6f7ff",
-		border: "#91d5ff",
-		text: "#0958d9",
+		background: "#dbeafe",
+		text: "#2563eb",
 		icon: "Clock",
 	},
 	"Running": {
-		background: "#fff7e6",
-		border: "#ffd591",
-		text: "#d46b08",
+		background: "#fef3c7",
+		text: "#d97706",
 		icon: "Sync",
 	},
 	"Suceeded": {
-		background: "#f6ffed",
-		border: "#b7eb8f",
-		text: "#389e0d",
+		background: "#dcfce7",
+		text: "#16a34a",
 		icon: "Completed",
 	},
 	"Failed": {
-		background: "#fff2f0",
-		border: "#ffccc7",
-		text: "#cf1322",
+		background: "#fee2e2",
+		text: "#dc2626",
 		icon: "ErrorBadge",
 	},
 	"Skipped": {
-		background: "#f5f5f5",
-		border: "#d9d9d9",
-		text: "#595959",
+		background: "#f3f4f6",
+		text: "#6b7280",
 		icon: "Forward",
 	},
 	"Cancelled": {
-		background: "#f5f5f5",
-		border: "#d9d9d9",
-		text: "#595959",
+		background: "#f3f4f6",
+		text: "#6b7280",
 		icon: "Blocked",
 	},
 };
 
 export const cellRendererOverrides: CellRendererOverrides = {
 	["Text"]: (props, col) => {
+		const columnName = col.colDefs[col.columnIndex].name;
+		// Handle Progress column (cra_progress) - displays as "[1/1]"
+		if (columnName === "cra_progress") {
+			const textValue = (props.value as string) ?? "";
+			// Parse the progress text (e.g., "[2/2]")
+			const countMatch = textValue.match(/\[(\d+)\/(\d+)\]/);
+			const completed = countMatch ? parseInt(countMatch[1], 10) : 0;
+			const total = countMatch ? parseInt(countMatch[2], 10) : 1;
+			const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+			const style = getProgressStyle(percentage);
+
+			return (
+				<Stack
+					horizontal
+					verticalAlign="center"
+					tokens={{ childrenGap: 6 }}
+					styles={{
+						root: {
+							height: "100%",
+							paddingLeft: 8,
+						},
+					}}
+				>
+					<Icon
+						iconName={style.icon}
+						styles={{
+							root: {
+								fontSize: 14,
+								color: style.color,
+							},
+						}}
+					/>
+					<Text
+						styles={{
+							root: {
+								color: style.color,
+								fontWeight: 500,
+								fontSize: 13,
+							},
+						}}
+					>
+						{textValue}
+					</Text>
+				</Stack>
+			);
+		}
 		return null;
 	},
 	["Decimal"]: (props, col) => {
@@ -66,16 +121,59 @@ export const cellRendererOverrides: CellRendererOverrides = {
 		if (columnName === "cra_percentagecomplete") {
 			const value = (props.value as number) ?? 0;
 			const percentage = Math.round(value * 100);
-			const barColor = getProgressColor(percentage);
+			const style = getProgressStyle(percentage);
 			return (
-				<Stack verticalAlign="center" styles={{ root: { height: "100%", paddingLeft: 8, paddingRight: 8 } }}>
-					<ProgressIndicator
-						percentComplete={value}
+				<Stack
+					verticalAlign="center"
+					styles={{
+						root: {
+							height: "100%",
+							paddingLeft: 8,
+							paddingRight: 12,
+						},
+					}}
+				>
+					<Stack
 						styles={{
-							progressBar: { backgroundColor: barColor, height: 8, borderRadius: 4 },
-							progressTrack: { height: 8, borderRadius: 4 },
+							root: {
+								position: "relative",
+								height: 10,
+								backgroundColor: style.trackColor,
+								borderRadius: 5,
+								overflow: "hidden",
+								border: `1px solid ${style.color}30`,
+							},
 						}}
-					/>
+					>
+						<Stack
+							styles={{
+								root: {
+									position: "absolute",
+									top: 0,
+									left: 0,
+									height: "100%",
+									width: `${percentage}%`,
+									background: `linear-gradient(90deg, ${style.color}cc, ${style.color})`,
+									borderRadius: 5,
+									transition: "width 0.3s ease",
+								},
+							}}
+						/>
+						{/* Shine effect */}
+						<Stack
+							styles={{
+								root: {
+									position: "absolute",
+									top: 0,
+									left: 0,
+									height: "50%",
+									width: `${percentage}%`,
+									background: "linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)",
+									borderRadius: "5px 5px 0 0",
+								},
+							}}
+						/>
+					</Stack>
 				</Stack>
 			);
 		}
@@ -99,9 +197,8 @@ export const cellRendererOverrides: CellRendererOverrides = {
 	["OptionSet"]: (props, col) => {
 		const optionText = props.formattedValue ?? "";
 		const config = statusConfig[optionText] ?? {
-			background: "#f5f5f5",
-			border: "#d9d9d9",
-			text: "#595959",
+			background: "#f3f4f6",
+			text: "#4b5563",
 			icon: "StatusCircleQuestionMark",
 		};
 		if (col.colDefs[col.columnIndex].name === "cra_researchplanrunstatus") {
@@ -110,14 +207,12 @@ export const cellRendererOverrides: CellRendererOverrides = {
 					<Stack
 						horizontal
 						verticalAlign="center"
-						horizontalAlign="center"
-						tokens={{ childrenGap: 4 }}
+						tokens={{ childrenGap: 6 }}
 						styles={{
 							root: {
 								backgroundColor: config.background,
-								border: `1px solid ${config.border}`,
-								padding: "2px 8px",
-								borderRadius: 12,
+								padding: "4px 10px",
+								borderRadius: 4,
 							},
 						}}
 					>
@@ -125,7 +220,7 @@ export const cellRendererOverrides: CellRendererOverrides = {
 							iconName={config.icon}
 							styles={{
 								root: {
-									fontSize: 12,
+									fontSize: 14,
 									color: config.text,
 									animation: optionText === "Running" ? "spin 2s linear infinite" : undefined,
 								},
@@ -136,7 +231,7 @@ export const cellRendererOverrides: CellRendererOverrides = {
 								root: {
 									color: config.text,
 									fontWeight: 500,
-									fontSize: 12,
+									fontSize: 13,
 								},
 							}}
 						>
