@@ -45,6 +45,8 @@ export default [
 		rules: {
 			...reactHooksPlugin.configs.recommended.rules,
 			"@typescript-eslint/no-unused-vars": "off",
+			"@typescript-eslint/prefer-regexp-exec": "off",
+			"react/prop-types": "off",
 		},
 	},
 ];
